@@ -1,0 +1,104 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <title>Plataforma Logística MVP</title>
+  <style>
+    body { font-family: Arial; margin: 40px; }
+    section { border: 1px solid #ccc; padding: 20px; margin-bottom: 30px; }
+    h2 { margin-top: 0; }
+    input, button { margin: 5px 0; }
+    .trip { border-bottom: 1px dashed #ccc; padding: 10px 0; }
+  </style>
+</head>
+<body>
+
+<h1>🚛 Plataforma Logística – MVP</h1>
+
+<section>
+  <h2>Crear viaje (Dador)</h2>
+  <input id="origin" placeholder="Origen"><br>
+  <input id="destination" placeholder="Destino"><br>
+  <input id="load_type" placeholder="Tipo de carga"><br>
+  <input id="max_price" placeholder="Precio máximo" type="number"><br>
+  <button onclick="createTrip()">Crear viaje</button>
+</section>
+
+<section>
+  <h2>Viajes publicados</h2>
+  <div id="trips"></div>
+</section>
+
+<section>
+  <h2>Comisiones</h2>
+  <button onclick="loadCommissions()">Ver comisiones</button>
+  <div id="commissions"></div>
+</section>
+
+<script>
+const API = "http://127.0.0.1:8000";
+
+async function createTrip() {
+  await fetch(`${API}/trips`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({
+      origin: origin.value,
+      destination: destination.value,
+      load_type: load_type.value,
+      max_price: parseFloat(max_price.value)
+    })
+  });
+  loadTrips();
+}
+
+async function loadTrips() {
+  const res = await fetch(`${API}/trips`);
+  const trips = await res.json();
+  const container = document.getElementById("trips");
+  container.innerHTML = "";
+
+  trips.forEach(t => {
+    const div = document.createElement("div");
+    div.className = "trip";
+    div.innerHTML = `
+      <b>Viaje #${t.id}</b><br>
+      ${t.origin} → ${t.destination}<br>
+      Precio máx: ${t.max_price}<br>
+      Estado: ${t.status}<br>
+      <input id="offer-${t.id}" placeholder="Precio oferta" type="number">
+      <button onclick="offer(${t.id})">Ofertar</button>
+      <button onclick="acceptOffer(${t.id})">Aceptar oferta</button>
+    `;
+    container.appendChild(div);
+  });
+}
+
+async function offer(tripId) {
+  const price = document.getElementById(`offer-${tripId}`).value;
+  await fetch(`${API}/trips/${tripId}/offer`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ price: parseFloat(price) })
+  });
+  loadTrips();
+}
+
+async function acceptOffer(tripId) {
+  // simplificación: acepta la última oferta creada
+  const res = await fetch(`${API}/offers/${tripId}/accept`, { method: "POST" });
+  loadTrips();
+}
+
+async function loadCommissions() {
+  const res = await fetch(`${API}/commissions`);
+  const data = await res.json();
+  const div = document.getElementById("commissions");
+  div.innerHTML = JSON.stringify(data, null, 2);
+}
+
+loadTrips();
+</script>
+
+</body>
+</html>
