@@ -117,7 +117,19 @@ def create_trip(trip: TripCreate):
 
 @app.get("/trips")
 def list_trips():
-    return db.query(Trip).all()
+    trips = db.query(Trip).all()
+    return [
+        {
+            "id": t.id,
+            "creator_user_id": t.creator_user_id,
+            "origin": t.origin,
+            "destination": t.destination,
+            "load_type": t.load_type,
+            "max_price": t.max_price,
+            "status": t.status,
+        }
+        for t in trips
+    ]
 
 @app.post("/trips/{trip_id}/offer")
 def create_offer(trip_id: int, offer: OfferCreate):
@@ -185,4 +197,15 @@ def accept_offer(offer_id: int):
 
 @app.get("/commissions")
 def list_commissions():
-    return db.query(Commission).all()
+    commissions = db.query(Commission).all()
+    return [
+        {
+            "id": c.id,
+            "trip_id": c.trip_id,
+            "transporter_user_id": c.transporter_user_id,
+            "final_price": c.final_price,
+            "commission_amount": c.commission_amount,
+            "status": c.status,
+        }
+        for c in commissions
+    ]
