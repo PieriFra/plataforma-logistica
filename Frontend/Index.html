@@ -43,10 +43,10 @@ async function createTrip() {
     method: "POST",
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify({
-      origin: origin.value,
-      destination: destination.value,
-      load_type: load_type.value,
-      max_price: parseFloat(max_price.value)
+      origin: document.getElementById("origin").value,
+      destination: document.getElementById("destination").value,
+      load_type: document.getElementById("load_type").value,
+      max_price: parseFloat(document.getElementById("max_price").value)
     })
   });
   loadTrips();
